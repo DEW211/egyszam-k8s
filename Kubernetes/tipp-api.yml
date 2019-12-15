@@ -1,0 +1,52 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: tipp-api
+  labels:
+    app.kubernetes.io/name: tipp-api
+spec:
+  ports:
+    - port: 80
+      protocol: TCP
+      targetPort: http # A kontener definicio portjara hivatkozik
+      name: http # A service-en ezen neven lesz elerheto a port
+  selector:
+    app.kubernetes.io/name: tipp-api
+---
+
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: tipp-api
+  labels:
+    app.kubernetes.io/name: tipp-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: tipp-api
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: tipp-api
+    spec:
+      containers:
+        - name: tipp-api
+          image: gameapp/tipp-api:v1
+          ports:
+            - name: http
+              containerPort: 80
+      restartPolicy: Always
+---
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: tipp-api
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /guess
+        backend:
+          serviceName: tipp-api
+          servicePort: 80
